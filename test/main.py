@@ -6,8 +6,8 @@ import tempfile
 from flask import Flask, render_template, request, jsonify
 import os
 
-
-model = joblib.load("audio_detection.pkl")
+BASE_DIR = os.path.dirname(__file__)
+model = joblib.load(os.path.join(BASE_DIR, "audio_detection.pkl"))
 
 def feature_extraction(y, sr):
     try:
@@ -48,7 +48,9 @@ def feature_extraction(y, sr):
         return None
 
 def audio_from_video(video_path):
-    temp_audio_path = tempfile.mktemp(suffix=".wav")
+    tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+    temp_audio_path = tmp.name
+    tmp.close()
 
     video = mp.VideoFileClip(video_path)
     video.audio.write_audiofile(temp_audio_path, logger=None)
@@ -106,7 +108,8 @@ def predict_audio(file_path):
 
 
 app = Flask(__name__)
-app.config["UPLOAD_FOLDER"] = "uploads"
+app.config["UPLOAD_FOLDER"] = os.path.join(BASE_DIR, "uploads")
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 @app.route("/")
 def home():
@@ -120,15 +123,25 @@ def predict():
         return jsonify({"error": "No file uploaded"})
 
     file = request.files["file"]
+
+    if not file.filename.lower().endswith((".mp3", ".wav", ".mp4")):
+        return jsonify({"error": "Unsupported file type. Please upload MP3, WAV, or MP4."})
+
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
     file.save(filepath)
 
-    # Run prediction
-    preds, avg_prob = predict_audio(filepath)
+    try:
+        result = predict_audio(filepath)
+        if result is None:
+            return jsonify({"error": "Audio too short or unreadable. Please upload a longer file."})
 
-    return jsonify({
-        "prediction": "AI Generated audio" if avg_prob > 0.40 else "Human Audio"
-    })
+        preds, avg_prob = result
+        return jsonify({
+            "prediction": "AI Generated audio" if avg_prob > 0.40 else "Human Audio"
+        })
+    finally:
+        if os.path.exists(filepath):
+            os.remove(filepath)
 
 if __name__ == "__main__":
     app.run(debug=True)

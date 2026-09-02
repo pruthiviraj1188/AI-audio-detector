@@ -40,8 +40,8 @@ def feature_extraction(file_path):
 
         return features
 
-    except:
-        print("error in feature extraction")
+    except Exception as e:
+        print(f"error in feature extraction: {e}")
         return None
 
 
@@ -61,6 +61,7 @@ def load_dataset(base_path, out_csv):
                         label = 0 if label_name == 'real' else 1
                         writer.writerow(feats + [label])
 
-load_dataset(r"C:\Users\dhanv\Desktop\VS code\AI audio detector project\test\dataset\for-norm\for-norm\training","train-norm.csv")
-load_dataset(r"C:\Users\dhanv\Desktop\VS code\AI audio detector project\test\dataset\for-norm\for-norm\validation","val-norm.csv")
-load_dataset(r"C:\Users\dhanv\Desktop\VS code\AI audio detector project\test\dataset\for-norm\for-norm\testing", "test-norm.csv")
+if __name__ == "__main__":
+    load_dataset(r"C:\Users\dhanv\Desktop\VS code\AI audio detector project\test\dataset\for-norm\for-norm\training", "train-norm.csv")
+    load_dataset(r"C:\Users\dhanv\Desktop\VS code\AI audio detector project\test\dataset\for-norm\for-norm\validation", "val-norm.csv")
+    load_dataset(r"C:\Users\dhanv\Desktop\VS code\AI audio detector project\test\dataset\for-norm\for-norm\testing", "test-norm.csv")
