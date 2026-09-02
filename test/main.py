@@ -4,10 +4,14 @@ import joblib
 import moviepy as mp
 import tempfile
 from flask import Flask, render_template, request, jsonify
+from werkzeug.utils import secure_filename
 import os
 
-BASE_DIR = os.path.dirname(__file__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 model = joblib.load(os.path.join(BASE_DIR, "audio_detection.pkl"))
+
+ALLOWED_EXTENSIONS = {".wav", ".mp3", ".mp4"}
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
 
 def feature_extraction(y, sr):
     try:
@@ -85,7 +89,7 @@ def predict_audio(file_path):
 
     if len(chunks) == 0:
         print("Audio too short!")
-        return
+        return None
 
     all_features = []
 
@@ -109,6 +113,7 @@ def predict_audio(file_path):
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = os.path.join(BASE_DIR, "uploads")
+app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 @app.route("/")
@@ -118,26 +123,29 @@ def home():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-
     if "file" not in request.files:
-        return jsonify({"error": "No file uploaded"})
+        return jsonify({"error": "No file uploaded"}), 400
 
     file = request.files["file"]
+    if not file or not file.filename:
+        return jsonify({"error": "No file selected"}), 400
 
-    if not file.filename.lower().endswith((".mp3", ".wav", ".mp4")):
-        return jsonify({"error": "Unsupported file type. Please upload MP3, WAV, or MP4."})
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        return jsonify({"error": "Unsupported file type. Use .wav, .mp3, or .mp4"}), 400
 
-    filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+    filename = secure_filename(file.filename)
+    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     file.save(filepath)
 
     try:
         result = predict_audio(filepath)
         if result is None:
-            return jsonify({"error": "Audio too short or unreadable. Please upload a longer file."})
-
+            return jsonify({"error": "Audio too short or could not be processed"}), 422
         preds, avg_prob = result
         return jsonify({
-            "prediction": "AI Generated audio" if avg_prob > 0.40 else "Human Audio"
+            "prediction": "AI Generated audio" if avg_prob > 0.40 else "Human Audio",
+            "confidence": f"{avg_prob * 100:.1f}%"
         })
     finally:
         if os.path.exists(filepath):

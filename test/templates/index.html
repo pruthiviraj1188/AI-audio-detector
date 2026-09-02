@@ -7,19 +7,58 @@
             font-family: Arial;
             text-align: center;
             margin-top: 100px;
+            background: #f9f9f9;
         }
         .box {
             padding: 40px;
             border: 1px solid #ddd;
             display: inline-block;
             border-radius: 10px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         button {
-            padding: 10px 20px;
+            padding: 10px 24px;
             background: #000000;
             color: white;
             border: none;
             border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: opacity 0.2s;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 16px;
+            color: #555;
+            font-size: 14px;
+            min-height: 20px;
+        }
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #ccc;
+            border-top-color: #333;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        #result {
+            margin-top: 10px;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: #007700;
         }
     </style>
 </head>
@@ -28,10 +67,11 @@
     <div class="box">
         <h2>AI Audio Authenticity Detector</h2>
         <form id="uploadForm">
-            <input type="file" name="file" required><br><br>
-            <button type="submit">Analyze</button>
+            <input type="file" name="file" accept=".wav,.mp3,.mp4" required><br><br>
+            <button type="submit" id="analyzeBtn">Analyze</button>
         </form>
 
+        <div id="status"></div>
         <h3 id="result"></h3>
     </div>
 
@@ -46,27 +86,30 @@ document.getElementById("uploadForm").onsubmit = async function(e) {
     btn.textContent = "Analyzing...";
     result.innerHTML = "";
 
-    let formData = new FormData(this);
+    const btn = document.getElementById("analyzeBtn");
+    const statusEl = document.getElementById("status");
+    const resultEl = document.getElementById("result");
+
+    // Reset UI
+    resultEl.innerHTML = "";
+    resultEl.className = "";
+
+    // Show loading state
+    btn.disabled = true;
+    statusEl.innerHTML = '<span class="spinner"></span> Analyzing audio, please wait...';
 
     try {
-        let response = await fetch("/predict", {
-            method: "POST",
-            body: formData
-        });
+        let formData = new FormData(this);
+
+    let response = await fetch("/predict", {
+        method: "POST",
+        body: formData
+    });
 
         let data = await response.json();
 
-        if (data.error) {
-            result.innerHTML = "Error: " + data.error;
-        } else {
-            result.innerHTML = "Prediction: " + data.prediction;
-        }
-    } catch (err) {
-        result.innerHTML = "Error: Could not connect to server.";
-    } finally {
-        btn.disabled = false;
-        btn.textContent = "Analyze";
-    }
+    document.getElementById("result").innerHTML =
+        "Prediction: " + data.prediction;
 };
 </script>
 </body>

@@ -62,6 +62,11 @@ def load_dataset(base_path, out_csv):
                         writer.writerow(feats + [label])
 
 if __name__ == "__main__":
-    load_dataset(r"C:\Users\dhanv\Desktop\VS code\AI audio detector project\test\dataset\for-norm\for-norm\training", "train-norm.csv")
-    load_dataset(r"C:\Users\dhanv\Desktop\VS code\AI audio detector project\test\dataset\for-norm\for-norm\validation", "val-norm.csv")
-    load_dataset(r"C:\Users\dhanv\Desktop\VS code\AI audio detector project\test\dataset\for-norm\for-norm\testing", "test-norm.csv")
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset", required=True, help="Path to dataset root (contains training/, validation/, testing/)")
+    args = parser.parse_args()
+
+    load_dataset(os.path.join(args.dataset, "training"), "train-norm.csv")
+    load_dataset(os.path.join(args.dataset, "validation"), "val-norm.csv")
+    load_dataset(os.path.join(args.dataset, "testing"), "test-norm.csv")
