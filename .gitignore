@@ -1,6 +1,7 @@
 # Ignore dataset folder
 dataset/
 uploads/
+*.zip
 
 # Python cache
 __pycache__/
