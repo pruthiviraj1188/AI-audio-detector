@@ -3,15 +3,11 @@
 <head>
     <title>AI Audio Detector</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
-            background: #0a0a1a;
+            background: #050510;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -21,59 +17,129 @@
 
         canvas {
             position: fixed;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
             z-index: 0;
+        }
+
+        /* Aurora blobs */
+        .aurora {
+            position: fixed;
+            z-index: 0;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.18;
+            animation: drift 18s ease-in-out infinite;
+        }
+        .aurora-1 {
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, #7c3aed, transparent);
+            top: -150px; left: -100px;
+            animation-duration: 20s;
+        }
+        .aurora-2 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, #2563eb, transparent);
+            bottom: -100px; right: -100px;
+            animation-duration: 25s;
+            animation-delay: -8s;
+        }
+        .aurora-3 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, #0ea5e9, transparent);
+            top: 40%; left: 50%;
+            animation-duration: 22s;
+            animation-delay: -4s;
+        }
+
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -30px) scale(1.05); }
+            66% { transform: translate(-30px, 40px) scale(0.95); }
         }
 
         .container {
             position: relative;
-            z-index: 1;
+            z-index: 2;
             text-align: center;
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 50px 60px;
+            background: rgba(10, 10, 30, 0.6);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 28px;
+            padding: 48px 56px;
             width: 460px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            box-shadow:
+                0 0 0 1px rgba(124, 58, 237, 0.1),
+                0 30px 60px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
         }
 
-        .icon {
-            font-size: 48px;
-            margin-bottom: 10px;
+        /* Animated equalizer bars */
+        .eq-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 3px;
+            height: 30px;
+            margin-bottom: 16px;
+        }
+
+        .eq-bar {
+            width: 3px;
+            border-radius: 2px;
+            background: linear-gradient(to top, #7c3aed, #38bdf8);
+            animation: eq 1.4s ease-in-out infinite;
+        }
+
+        .eq-bar:nth-child(1)  { height: 8px;  animation-delay: 0.0s; }
+        .eq-bar:nth-child(2)  { height: 18px; animation-delay: 0.1s; }
+        .eq-bar:nth-child(3)  { height: 26px; animation-delay: 0.2s; }
+        .eq-bar:nth-child(4)  { height: 14px; animation-delay: 0.3s; }
+        .eq-bar:nth-child(5)  { height: 30px; animation-delay: 0.15s; }
+        .eq-bar:nth-child(6)  { height: 20px; animation-delay: 0.25s; }
+        .eq-bar:nth-child(7)  { height: 30px; animation-delay: 0.1s; }
+        .eq-bar:nth-child(8)  { height: 14px; animation-delay: 0.35s; }
+        .eq-bar:nth-child(9)  { height: 26px; animation-delay: 0.2s; }
+        .eq-bar:nth-child(10) { height: 18px; animation-delay: 0.1s; }
+        .eq-bar:nth-child(11) { height: 8px;  animation-delay: 0.0s; }
+
+        @keyframes eq {
+            0%, 100% { transform: scaleY(0.3); opacity: 0.5; }
+            50%       { transform: scaleY(1);   opacity: 1; }
         }
 
         h1 {
-            color: #ffffff;
-            font-size: 24px;
+            color: #f1f5f9;
+            font-size: 26px;
             font-weight: 700;
+            letter-spacing: 0.3px;
             margin-bottom: 6px;
-            letter-spacing: 0.5px;
         }
 
         .subtitle {
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(148, 163, 184, 0.6);
             font-size: 13px;
             margin-bottom: 36px;
         }
 
         .upload-area {
-            border: 2px dashed rgba(99, 179, 237, 0.4);
-            border-radius: 16px;
-            padding: 30px 20px;
-            margin-bottom: 24px;
+            border: 1.5px dashed rgba(99, 179, 237, 0.25);
+            border-radius: 18px;
+            padding: 28px 20px;
+            margin-bottom: 20px;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
+            background: rgba(255, 255, 255, 0.02);
         }
 
         .upload-area:hover {
-            border-color: rgba(99, 179, 237, 0.8);
-            background: rgba(99, 179, 237, 0.05);
+            border-color: rgba(99, 179, 237, 0.6);
+            background: rgba(56, 189, 248, 0.04);
+            transform: translateY(-1px);
         }
 
         .upload-area input[type="file"] {
@@ -85,30 +151,27 @@
             height: 100%;
         }
 
-        .upload-icon {
-            font-size: 32px;
-            margin-bottom: 8px;
-        }
+        .upload-icon { font-size: 30px; margin-bottom: 8px; }
 
         .upload-text {
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(203, 213, 225, 0.7);
             font-size: 14px;
         }
 
         .upload-text span {
-            color: #63b3ed;
+            color: #38bdf8;
             font-weight: 600;
         }
 
         .file-types {
-            color: rgba(255, 255, 255, 0.3);
+            color: rgba(148, 163, 184, 0.35);
             font-size: 11px;
-            margin-top: 6px;
+            margin-top: 5px;
         }
 
         .selected-file {
-            color: #63b3ed;
-            font-size: 13px;
+            color: #38bdf8;
+            font-size: 12px;
             margin-top: 8px;
             display: none;
         }
@@ -116,119 +179,98 @@
         button {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
         }
 
         button:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 30px rgba(124, 58, 237, 0.5);
         }
 
         button:disabled {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
 
         .result {
-            margin-top: 24px;
-            padding: 16px 20px;
-            border-radius: 12px;
+            margin-top: 20px;
+            padding: 14px 20px;
+            border-radius: 14px;
             font-size: 15px;
             font-weight: 600;
             display: none;
-            animation: fadeIn 0.4s ease;
+            animation: fadeUp 0.4s ease;
         }
 
         .result.human {
-            background: rgba(72, 187, 120, 0.15);
-            border: 1px solid rgba(72, 187, 120, 0.4);
-            color: #68d391;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
         }
 
         .result.ai {
-            background: rgba(252, 129, 74, 0.15);
-            border: 1px solid rgba(252, 129, 74, 0.4);
-            color: #fc814a;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
         }
 
         .result.error {
-            background: rgba(245, 101, 101, 0.15);
-            border: 1px solid rgba(245, 101, 101, 0.4);
-            color: #fc8181;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .wave-bars {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            height: 24px;
-            margin-bottom: 4px;
-        }
-
-        .wave-bar {
-            width: 3px;
-            background: #667eea;
-            border-radius: 3px;
-            animation: wavebar 1.2s ease-in-out infinite;
-        }
-
-        .wave-bar:nth-child(1) { animation-delay: 0s; height: 8px; }
-        .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 16px; }
-        .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 24px; }
-        .wave-bar:nth-child(4) { animation-delay: 0.3s; height: 16px; }
-        .wave-bar:nth-child(5) { animation-delay: 0.4s; height: 8px; }
-        .wave-bar:nth-child(6) { animation-delay: 0.3s; height: 16px; }
-        .wave-bar:nth-child(7) { animation-delay: 0.2s; height: 24px; }
-        .wave-bar:nth-child(8) { animation-delay: 0.1s; height: 16px; }
-        .wave-bar:nth-child(9) { animation-delay: 0s; height: 8px; }
-
-        @keyframes wavebar {
-            0%, 100% { transform: scaleY(0.4); opacity: 0.5; }
-            50% { transform: scaleY(1); opacity: 1; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
 
-<canvas id="waveCanvas"></canvas>
+<!-- Aurora background blobs -->
+<div class="aurora aurora-1"></div>
+<div class="aurora aurora-2"></div>
+<div class="aurora aurora-3"></div>
+
+<!-- Particle canvas -->
+<canvas id="canvas"></canvas>
 
 <div class="container">
     <div class="card">
-        <div class="wave-bars">
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
+        <div class="eq-bars">
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
         </div>
+
         <h1>AI Audio Detector</h1>
         <p class="subtitle">Detect whether audio is AI generated or human</p>
 
         <form id="uploadForm">
-            <div class="upload-area" id="uploadArea">
+            <div class="upload-area">
                 <input type="file" name="file" accept=".mp3,.wav,.mp4" required id="fileInput">
                 <div class="upload-icon">🎵</div>
                 <div class="upload-text"><span>Click to upload</span> or drag & drop</div>
-                <div class="file-types">MP3, WAV, MP4 supported</div>
+                <div class="file-types">MP3 · WAV · MP4</div>
                 <div class="selected-file" id="selectedFile"></div>
             </div>
             <button type="submit" id="analyzeBtn">Analyze Audio</button>
@@ -239,54 +281,50 @@
 </div>
 
 <script>
-    // Canvas wave animation
-    const canvas = document.getElementById('waveCanvas');
+    // Particle network
+    const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    window.addEventListener('resize', () => {
+    function resize() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-    });
+    }
+    resize();
+    window.addEventListener('resize', resize);
 
-    const waves = [
-        { y: 0.35, amplitude: 55, frequency: 0.007, speed: 0.003, color: 'rgba(102, 126, 234, 0.13)' },
-        { y: 0.5,  amplitude: 70, frequency: 0.005, speed: 0.002, color: 'rgba(118, 75, 162, 0.10)' },
-        { y: 0.65, amplitude: 45, frequency: 0.009, speed: 0.004, color: 'rgba(99, 179, 237, 0.08)' },
-        { y: 0.8,  amplitude: 35, frequency: 0.006, speed: 0.0025, color: 'rgba(159, 122, 234, 0.07)' },
-    ];
-
-    // Floating particles
-    const particles = Array.from({ length: 60 }, () => ({
-        x: Math.random() * window.innerWidth,
-        y: Math.random() * window.innerHeight,
-        r: Math.random() * 2 + 0.5,
-        speedX: (Math.random() - 0.5) * 0.3,
-        speedY: (Math.random() - 0.5) * 0.3,
-        opacity: Math.random() * 0.4 + 0.1
+    const particles = Array.from({ length: 70 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.5 + 0.5,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
+        opacity: Math.random() * 0.35 + 0.1
     }));
 
-    let time = 0;
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    function drawWave(wave) {
-        ctx.beginPath();
-        ctx.moveTo(0, canvas.height);
-        for (let x = 0; x <= canvas.width; x++) {
-            const y = canvas.height * wave.y + Math.sin(x * wave.frequency + time * wave.speed * 100) * wave.amplitude;
-            ctx.lineTo(x, y);
+        // connections
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const d = Math.sqrt(dx * dx + dy * dy);
+                if (d < 130) {
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.strokeStyle = `rgba(124, 58, 237, ${0.12 * (1 - d / 130)})`;
+                    ctx.lineWidth = 0.6;
+                    ctx.stroke();
+                }
+            }
         }
-        ctx.lineTo(canvas.width, canvas.height);
-        ctx.closePath();
-        ctx.fillStyle = wave.color;
-        ctx.fill();
-    }
 
-    function drawParticles() {
+        // dots
         particles.forEach(p => {
-            p.x += p.speedX;
-            p.y += p.speedY;
+            p.x += p.vx;
+            p.y += p.vy;
             if (p.x < 0) p.x = canvas.width;
             if (p.x > canvas.width) p.x = 0;
             if (p.y < 0) p.y = canvas.height;
@@ -294,48 +332,16 @@
 
             ctx.beginPath();
             ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(160, 180, 255, ${p.opacity})`;
+            ctx.fillStyle = `rgba(148, 163, 255, ${p.opacity})`;
             ctx.fill();
         });
+
+        requestAnimationFrame(draw);
     }
 
-    function drawConnections() {
-        for (let i = 0; i < particles.length; i++) {
-            for (let j = i + 1; j < particles.length; j++) {
-                const dx = particles[i].x - particles[j].x;
-                const dy = particles[i].y - particles[j].y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 120) {
-                    ctx.beginPath();
-                    ctx.moveTo(particles[i].x, particles[i].y);
-                    ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.strokeStyle = `rgba(160, 180, 255, ${0.08 * (1 - dist / 120)})`;
-                    ctx.lineWidth = 0.5;
-                    ctx.stroke();
-                }
-            }
-        }
-    }
+    draw();
 
-    function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        waves.forEach(drawWave);
-        drawConnections();
-        drawParticles();
-        time++;
-        requestAnimationFrame(animate);
-    }
-
-    animate();
-
-    window.addEventListener('resize', () => {
-        particles.forEach(p => {
-            p.x = Math.random() * canvas.width;
-            p.y = Math.random() * canvas.height;
-        });
-    });
-
-    // File input display
+    // File input
     document.getElementById('fileInput').addEventListener('change', function () {
         const label = document.getElementById('selectedFile');
         if (this.files[0]) {
@@ -347,7 +353,6 @@
     // Form submit
     document.getElementById('uploadForm').onsubmit = async function (e) {
         e.preventDefault();
-
         const btn = document.getElementById('analyzeBtn');
         const result = document.getElementById('result');
 
@@ -357,26 +362,21 @@
         result.className = 'result';
 
         try {
-            const response = await fetch('/predict', {
-                method: 'POST',
-                body: new FormData(this)
-            });
-
-            const data = await response.json();
+            const res = await fetch('/predict', { method: 'POST', body: new FormData(this) });
+            const data = await res.json();
 
             if (data.error) {
                 result.textContent = '⚠️ ' + data.error;
                 result.classList.add('error');
             } else if (data.prediction === 'Human Audio') {
-                result.textContent = '✅ ' + data.prediction;
+                result.textContent = '✅ Human Audio — This sounds like a real person';
                 result.classList.add('human');
             } else {
-                result.textContent = '🤖 ' + data.prediction;
+                result.textContent = '🤖 AI Generated — This audio was likely synthesized';
                 result.classList.add('ai');
             }
-
             result.style.display = 'block';
-        } catch (err) {
+        } catch {
             result.textContent = '⚠️ Could not connect to server.';
             result.classList.add('error');
             result.style.display = 'block';
