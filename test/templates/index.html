@@ -1,73 +1,338 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AI Audio Detection</title>
+    <title>AI Audio Detector</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #0a0a1a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
             text-align: center;
-            margin-top: 100px;
         }
-        .box {
-            padding: 40px;
-            border: 1px solid #ddd;
-            display: inline-block;
-            border-radius: 10px;
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 50px 60px;
+            width: 460px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
         }
+
+        .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 13px;
+            margin-bottom: 36px;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(99, 179, 237, 0.4);
+            border-radius: 16px;
+            padding: 30px 20px;
+            margin-bottom: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: rgba(99, 179, 237, 0.8);
+            background: rgba(99, 179, 237, 0.05);
+        }
+
+        .upload-area input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .upload-text {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        .upload-text span {
+            color: #63b3ed;
+            font-weight: 600;
+        }
+
+        .file-types {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 11px;
+            margin-top: 6px;
+        }
+
+        .selected-file {
+            color: #63b3ed;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+
         button {
-            padding: 10px 20px;
-            background: #000000;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 24px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .result.human {
+            background: rgba(72, 187, 120, 0.15);
+            border: 1px solid rgba(72, 187, 120, 0.4);
+            color: #68d391;
+        }
+
+        .result.ai {
+            background: rgba(252, 129, 74, 0.15);
+            border: 1px solid rgba(252, 129, 74, 0.4);
+            color: #fc814a;
+        }
+
+        .result.error {
+            background: rgba(245, 101, 101, 0.15);
+            border: 1px solid rgba(245, 101, 101, 0.4);
+            color: #fc8181;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .wave-bars {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 24px;
+            margin-bottom: 4px;
+        }
+
+        .wave-bar {
+            width: 3px;
+            background: #667eea;
+            border-radius: 3px;
+            animation: wavebar 1.2s ease-in-out infinite;
+        }
+
+        .wave-bar:nth-child(1) { animation-delay: 0s; height: 8px; }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 16px; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 24px; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; height: 16px; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; height: 8px; }
+        .wave-bar:nth-child(6) { animation-delay: 0.3s; height: 16px; }
+        .wave-bar:nth-child(7) { animation-delay: 0.2s; height: 24px; }
+        .wave-bar:nth-child(8) { animation-delay: 0.1s; height: 16px; }
+        .wave-bar:nth-child(9) { animation-delay: 0s; height: 8px; }
+
+        @keyframes wavebar {
+            0%, 100% { transform: scaleY(0.4); opacity: 0.5; }
+            50% { transform: scaleY(1); opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-    <div class="box">
-        <h2>AI Audio Authenticity Detector</h2>
+<canvas id="waveCanvas"></canvas>
+
+<div class="container">
+    <div class="card">
+        <div class="wave-bars">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+        </div>
+        <h1>AI Audio Detector</h1>
+        <p class="subtitle">Detect whether audio is AI generated or human</p>
+
         <form id="uploadForm">
-            <input type="file" name="file" accept=".mp3,.wav,.mp4" required><br><br>
-            <button type="submit">Analyze</button>
+            <div class="upload-area" id="uploadArea">
+                <input type="file" name="file" accept=".mp3,.wav,.mp4" required id="fileInput">
+                <div class="upload-icon">🎵</div>
+                <div class="upload-text"><span>Click to upload</span> or drag & drop</div>
+                <div class="file-types">MP3, WAV, MP4 supported</div>
+                <div class="selected-file" id="selectedFile"></div>
+            </div>
+            <button type="submit" id="analyzeBtn">Analyze Audio</button>
         </form>
 
-        <h3 id="result"></h3>
+        <div class="result" id="result"></div>
     </div>
+</div>
 
 <script>
-document.getElementById("uploadForm").onsubmit = async function(e) {
-    e.preventDefault();
+    // Canvas wave animation
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
 
-    const btn = this.querySelector("button");
-    const result = document.getElementById("result");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    btn.disabled = true;
-    btn.textContent = "Analyzing...";
-    result.innerHTML = "";
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
 
-    let formData = new FormData(this);
+    const waves = [
+        { y: 0.4, amplitude: 60, frequency: 0.008, speed: 0.02, color: 'rgba(102, 126, 234, 0.15)' },
+        { y: 0.5, amplitude: 80, frequency: 0.006, speed: 0.015, color: 'rgba(118, 75, 162, 0.12)' },
+        { y: 0.6, amplitude: 50, frequency: 0.01, speed: 0.025, color: 'rgba(99, 179, 237, 0.1)' },
+    ];
 
-    try {
-        let response = await fetch("/predict", {
-            method: "POST",
-            body: formData
-        });
+    let time = 0;
 
-        let data = await response.json();
+    function drawWave(wave) {
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height);
 
-        if (data.error) {
-            result.innerHTML = "Error: " + data.error;
-        } else {
-            result.innerHTML = "Prediction: " + data.prediction;
+        for (let x = 0; x <= canvas.width; x++) {
+            const y = canvas.height * wave.y + Math.sin(x * wave.frequency + time * wave.speed * 100) * wave.amplitude;
+            ctx.lineTo(x, y);
         }
-    } catch (err) {
-        result.innerHTML = "Error: Could not connect to server.";
-    } finally {
-        btn.disabled = false;
-        btn.textContent = "Analyze";
+
+        ctx.lineTo(canvas.width, canvas.height);
+        ctx.closePath();
+        ctx.fillStyle = wave.color;
+        ctx.fill();
     }
-};
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        waves.forEach(drawWave);
+        time++;
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // File input display
+    document.getElementById('fileInput').addEventListener('change', function () {
+        const label = document.getElementById('selectedFile');
+        if (this.files[0]) {
+            label.textContent = '✓ ' + this.files[0].name;
+            label.style.display = 'block';
+        }
+    });
+
+    // Form submit
+    document.getElementById('uploadForm').onsubmit = async function (e) {
+        e.preventDefault();
+
+        const btn = document.getElementById('analyzeBtn');
+        const result = document.getElementById('result');
+
+        btn.disabled = true;
+        btn.textContent = 'Analyzing...';
+        result.style.display = 'none';
+        result.className = 'result';
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: new FormData(this)
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                result.textContent = '⚠️ ' + data.error;
+                result.classList.add('error');
+            } else if (data.prediction === 'Human Audio') {
+                result.textContent = '✅ ' + data.prediction;
+                result.classList.add('human');
+            } else {
+                result.textContent = '🤖 ' + data.prediction;
+                result.classList.add('ai');
+            }
+
+            result.style.display = 'block';
+        } catch (err) {
+            result.textContent = '⚠️ Could not connect to server.';
+            result.classList.add('error');
+            result.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Analyze Audio';
+        }
+    };
 </script>
 </body>
 </html>
