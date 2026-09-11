@@ -260,6 +260,17 @@
             opacity: 0.6;
         }
 
+        .result-reason {
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 400;
+            opacity: 0.65;
+            line-height: 1.6;
+            text-align: left;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            padding-top: 10px;
+        }
+
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(12px); }
             to   { opacity: 1; transform: translateY(0); }
@@ -402,19 +413,35 @@
                 const pct = parseFloat(data.confidence);
                 const humanPct = (100 - pct).toFixed(1);
                 result.classList.add('human');
+
+                let reason = '';
+                if (humanPct >= 90) reason = 'Very natural speech patterns, consistent rhythm, and organic vocal variations detected.';
+                else if (humanPct >= 75) reason = 'Strong human vocal characteristics found — natural breathing, tone variation, and irregular cadence.';
+                else if (humanPct >= 60) reason = 'Mostly human traits detected, though some segments showed minor synthetic patterns.';
+                else reason = 'Leans human, but confidence is moderate. Audio may be short or have background noise.';
+
                 result.innerHTML = `
                     <div class="result-label">✅ Human Audio</div>
                     <div class="progress-wrap"><div class="progress-bar" style="width:0%" id="pbar"></div></div>
                     <div class="progress-label"><span>Human confidence</span><span>${humanPct}%</span></div>
+                    <div class="result-reason">${reason}</div>
                 `;
                 setTimeout(() => document.getElementById('pbar').style.width = humanPct + '%', 50);
             } else {
                 const pct = parseFloat(data.confidence);
                 result.classList.add('ai');
+
+                let reason = '';
+                if (pct >= 90) reason = 'Highly uniform pitch, robotic cadence, and absence of natural breathing patterns detected.';
+                else if (pct >= 75) reason = 'Strong AI markers found — unnatural smoothness, consistent tone, and lack of vocal imperfections.';
+                else if (pct >= 60) reason = 'Several AI-like patterns detected, such as flat intonation and overly clean audio quality.';
+                else reason = 'Leans AI-generated, but confidence is moderate. Consider uploading a longer audio clip.';
+
                 result.innerHTML = `
                     <div class="result-label">🤖 AI Generated Audio</div>
                     <div class="progress-wrap"><div class="progress-bar" style="width:0%" id="pbar"></div></div>
                     <div class="progress-label"><span>AI confidence</span><span>${pct.toFixed(1)}%</span></div>
+                    <div class="result-reason">${reason}</div>
                 `;
                 setTimeout(() => document.getElementById('pbar').style.width = pct + '%', 50);
             }
