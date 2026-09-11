@@ -78,8 +78,10 @@ def split_audio_into_chunks(file_path, chunk_duration=2):
 
 def predict_audio(file_path):
 
+    temp_file = None
     if file_path.endswith(".mp4"):
-        file_path = audio_from_video(file_path)
+        temp_file = audio_from_video(file_path)
+        file_path = temp_file
 
     chunks, sr = split_audio_into_chunks(file_path)
 
@@ -94,6 +96,9 @@ def predict_audio(file_path):
         if features is not None:
             all_features.append(features)
 
+    if len(all_features) == 0:
+        return None
+
     X = np.array(all_features)
 
     # Predict probabilities
@@ -103,7 +108,10 @@ def predict_audio(file_path):
 
     avg_prob = np.mean(probs)
 
-    return preds ,avg_prob
+    if temp_file and os.path.exists(temp_file):
+        os.remove(temp_file)
+
+    return preds, avg_prob
 
 
 
