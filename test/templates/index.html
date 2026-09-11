@@ -230,6 +230,36 @@
             color: #fbbf24;
         }
 
+        .result-label {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .progress-wrap {
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 999px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.8s ease;
+        }
+
+        .result.human .progress-bar { background: linear-gradient(90deg, #10b981, #34d399); }
+        .result.ai    .progress-bar { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            opacity: 0.6;
+        }
+
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(12px); }
             to   { opacity: 1; transform: translateY(0); }
@@ -369,11 +399,24 @@
                 result.textContent = '⚠️ ' + data.error;
                 result.classList.add('error');
             } else if (data.prediction === 'Human Audio') {
-                result.textContent = '✅ Human Audio — This sounds like a real person';
+                const pct = parseFloat(data.confidence);
+                const humanPct = (100 - pct).toFixed(1);
                 result.classList.add('human');
+                result.innerHTML = `
+                    <div class="result-label">✅ Human Audio</div>
+                    <div class="progress-wrap"><div class="progress-bar" style="width:0%" id="pbar"></div></div>
+                    <div class="progress-label"><span>Human confidence</span><span>${humanPct}%</span></div>
+                `;
+                setTimeout(() => document.getElementById('pbar').style.width = humanPct + '%', 50);
             } else {
-                result.textContent = '🤖 AI Generated — This audio was likely synthesized';
+                const pct = parseFloat(data.confidence);
                 result.classList.add('ai');
+                result.innerHTML = `
+                    <div class="result-label">🤖 AI Generated Audio</div>
+                    <div class="progress-wrap"><div class="progress-bar" style="width:0%" id="pbar"></div></div>
+                    <div class="progress-label"><span>AI confidence</span><span>${pct.toFixed(1)}%</span></div>
+                `;
+                setTimeout(() => document.getElementById('pbar').style.width = pct + '%', 50);
             }
             result.style.display = 'block';
         } catch {
