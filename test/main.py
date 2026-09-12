@@ -112,10 +112,23 @@ def predict_audio(file_path):
 
     avg_prob = np.mean(probs)
 
+    # Technical feature averages
+    avg_features = np.mean(X, axis=0)
+    mfcc_variance = float(np.mean(np.std(X[:, :13], axis=0)))
+    spectral_centroid = float(avg_features[52])  # centroid_mean index
+    harmonic_ratio = float(avg_features[-1])
+    delta_energy = float(np.mean(avg_features[26:39]))
+
     if temp_file and os.path.exists(temp_file):
         os.remove(temp_file)
 
-    return preds, avg_prob
+    return preds, avg_prob, {
+        "mfcc_variance": round(mfcc_variance, 4),
+        "spectral_centroid": round(spectral_centroid, 2),
+        "harmonic_ratio": round(harmonic_ratio, 4),
+        "delta_energy": round(delta_energy, 4),
+        "chunks_analyzed": len(chunks)
+    }
 
 
 
@@ -150,10 +163,11 @@ def predict():
         result = predict_audio(filepath)
         if result is None:
             return jsonify({"error": "Audio too short or could not be processed"}), 422
-        preds, avg_prob = result
+        preds, avg_prob, tech = result
         return jsonify({
             "prediction": "AI Generated audio" if avg_prob > 0.40 else "Human Audio",
-            "confidence": f"{avg_prob * 100:.1f}%"
+            "confidence": f"{avg_prob * 100:.1f}%",
+            "technical": tech
         })
     finally:
         if os.path.exists(filepath):

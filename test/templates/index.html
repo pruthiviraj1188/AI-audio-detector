@@ -271,6 +271,44 @@
             padding-top: 10px;
         }
 
+        .tech-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            padding-top: 12px;
+        }
+
+        .tech-item {
+            background: rgba(255,255,255,0.04);
+            border-radius: 10px;
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        .tech-item .tech-label {
+            font-size: 10px;
+            opacity: 0.5;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+
+        .tech-item .tech-value {
+            font-size: 13px;
+            font-weight: 700;
+            opacity: 0.9;
+        }
+
+        .tech-item .tech-desc {
+            font-size: 10px;
+            opacity: 0.45;
+            margin-top: 2px;
+            font-weight: 400;
+        }
+
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(12px); }
             to   { opacity: 1; transform: translateY(0); }
@@ -412,6 +450,7 @@
             } else if (data.prediction === 'Human Audio') {
                 const pct = parseFloat(data.confidence);
                 const humanPct = (100 - pct).toFixed(1);
+                const t = data.technical;
                 result.classList.add('human');
 
                 let reason = '';
@@ -425,10 +464,33 @@
                     <div class="progress-wrap"><div class="progress-bar" style="width:0%" id="pbar"></div></div>
                     <div class="progress-label"><span>Human confidence</span><span>${humanPct}%</span></div>
                     <div class="result-reason">${reason}</div>
+                    <div class="tech-grid">
+                        <div class="tech-item">
+                            <div class="tech-label">MFCC Variance</div>
+                            <div class="tech-value">${t.mfcc_variance}</div>
+                            <div class="tech-desc">High variance = natural vocal irregularity</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-label">Spectral Centroid</div>
+                            <div class="tech-value">${t.spectral_centroid} Hz</div>
+                            <div class="tech-desc">Brightness of the audio signal</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-label">Harmonic Ratio</div>
+                            <div class="tech-value">${t.harmonic_ratio}</div>
+                            <div class="tech-desc">Tonal vs percussive energy balance</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-label">Chunks Analyzed</div>
+                            <div class="tech-value">${t.chunks_analyzed} segments</div>
+                            <div class="tech-desc">2-second audio chunks processed</div>
+                        </div>
+                    </div>
                 `;
                 setTimeout(() => document.getElementById('pbar').style.width = humanPct + '%', 50);
             } else {
                 const pct = parseFloat(data.confidence);
+                const t = data.technical;
                 result.classList.add('ai');
 
                 let reason = '';
@@ -442,6 +504,28 @@
                     <div class="progress-wrap"><div class="progress-bar" style="width:0%" id="pbar"></div></div>
                     <div class="progress-label"><span>AI confidence</span><span>${pct.toFixed(1)}%</span></div>
                     <div class="result-reason">${reason}</div>
+                    <div class="tech-grid">
+                        <div class="tech-item">
+                            <div class="tech-label">MFCC Variance</div>
+                            <div class="tech-value">${t.mfcc_variance}</div>
+                            <div class="tech-desc">Low variance = synthetic uniformity</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-label">Spectral Centroid</div>
+                            <div class="tech-value">${t.spectral_centroid} Hz</div>
+                            <div class="tech-desc">Brightness of the audio signal</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-label">Harmonic Ratio</div>
+                            <div class="tech-value">${t.harmonic_ratio}</div>
+                            <div class="tech-desc">Tonal vs percussive energy balance</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-label">Chunks Analyzed</div>
+                            <div class="tech-value">${t.chunks_analyzed} segments</div>
+                            <div class="tech-desc">2-second audio chunks processed</div>
+                        </div>
+                    </div>
                 `;
                 setTimeout(() => document.getElementById('pbar').style.width = pct + '%', 50);
             }
