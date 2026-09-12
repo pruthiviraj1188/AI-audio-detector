@@ -10,7 +10,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 model = joblib.load(os.path.join(BASE_DIR, "audio_detection.pkl"))
 
-ALLOWED_EXTENSIONS = {".wav", ".mp3", ".mp4"}
+ALLOWED_EXTENSIONS = {".wav", ".mp3", ".mp4", ".ogg", ".flac", ".aac", ".m4a", ".wma", ".aiff", ".aif"}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
 
 def feature_extraction(y, sr):
@@ -83,7 +83,7 @@ def split_audio_into_chunks(file_path, chunk_duration=2):
 def predict_audio(file_path):
 
     temp_file = None
-    if file_path.endswith(".mp4"):
+    if file_path.lower().endswith(".mp4"):
         temp_file = audio_from_video(file_path)
         file_path = temp_file
 
