@@ -10,7 +10,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 model = joblib.load(os.path.join(BASE_DIR, "audio_detection.pkl"))
 
-ALLOWED_EXTENSIONS = {".wav", ".mp3", ".mp4", ".ogg", ".flac", ".aac", ".m4a", ".wma", ".aiff", ".aif"}
+ALLOWED_EXTENSIONS = {".wav", ".mp3", ".mp4", ".ogg", ".flac", ".aac", ".m4a", ".wma", ".aiff", ".aif", ".opus", ".webm", ".3gp"}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
 
 def feature_extraction(y, sr):
