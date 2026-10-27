@@ -15,7 +15,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "audio_detection.pkl")
 SAMPLE_RATE = 16000
 CHUNK_DURATION = 2
-DECISION_THRESHOLD = 0.40
+DECISION_THRESHOLD = 0.5
 
 # Global model instance
 _model = None

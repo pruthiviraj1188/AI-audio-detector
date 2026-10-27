@@ -76,7 +76,7 @@ def predict_audio(file_path):
 
     # Predict probabilities
     probs = model.predict_proba(X)[:, 1] 
-    threshold = 0.40
+    threshold = 0.5
     preds = (probs > threshold).astype(int)
 
     avg_prob = np.mean(probs)
@@ -134,7 +134,7 @@ def predict():
             return jsonify({"error": "Audio too short or could not be processed"}), 422
         preds, avg_prob, tech = result
         return jsonify({
-            "prediction": "AI Generated audio" if avg_prob > 0.40 else "Human Audio",
+            "prediction": "AI Generated audio" if avg_prob > 0.5 else "Human Audio",
             "confidence": f"{avg_prob * 100:.1f}%",
             "technical": tech
         })
