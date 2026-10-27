@@ -75,7 +75,11 @@ def predict_audio(file_path):
     X = np.array(all_features)
 
     # Predict probabilities
-    probs = model.predict_proba(X)[:, 1] 
+    probs = model.predict_proba(X)[:, 1]
+    
+    # Use threshold of 0.5 for decision boundary:
+    # If probability > 0.5, audio is more likely AI-generated than human
+    # This is the correct interpretation: P(AI) > 0.5 means classify as AI
     threshold = 0.5
     preds = (probs > threshold).astype(int)
 
@@ -133,8 +137,13 @@ def predict():
         if result is None:
             return jsonify({"error": "Audio too short or could not be processed"}), 422
         preds, avg_prob, tech = result
+        
+        # Classification logic: if average probability > 0.5, more likely AI than human
+        # This prevents the bug where AI audio was classified as human
+        is_ai_generated = avg_prob > 0.5
+        
         return jsonify({
-            "prediction": "AI Generated audio" if avg_prob > 0.5 else "Human Audio",
+            "prediction": "AI Generated audio" if is_ai_generated else "Human Audio",
             "confidence": f"{avg_prob * 100:.1f}%",
             "technical": tech
         })

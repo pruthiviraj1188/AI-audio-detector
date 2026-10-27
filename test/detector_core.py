@@ -15,6 +15,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "audio_detection.pkl")
 SAMPLE_RATE = 16000
 CHUNK_DURATION = 2
+
+# DECISION_THRESHOLD = 0.5
+# Using 0.5 as the decision boundary is correct because:
+# 1. The model outputs P(AI) - probability that audio is AI-generated (class 1)
+# 2. When P(AI) > 0.5, it means AI-generated is more likely than human, so classify as AI
+# 3. This is the standard probability threshold for binary classification
+# 4. Using < 0.5 instead would invert the logic (bug: AI classified as human)
+# 5. Using lower thresholds like 0.4 reduces false negatives but increases false positives
 DECISION_THRESHOLD = 0.5
 
 # Global model instance
@@ -90,6 +98,12 @@ def predict_chunk(audio_chunk: np.ndarray, sr: int = SAMPLE_RATE) -> Optional[fl
         
     Returns:
         AI probability (0.0 to 1.0) or None if prediction fails
+        
+    Note:
+        Probability > 0.5 indicates AI-generated audio.
+        The threshold of 0.5 is used in classification:
+        - If P(AI) > 0.5: classify as AI-generated
+        - If P(AI) <= 0.5: classify as human audio
     """
     try:
         model = load_model()
@@ -150,7 +164,7 @@ class RollingVerdict:
         """
         Args:
             history_size: Number of recent predictions to track
-            threshold: Decision boundary (default 0.40)
+            threshold: Decision boundary (default 0.5 - standard probability threshold where P(AI) > 0.5 means AI-generated)
             flip_streak: Consecutive predictions needed to change state
         """
         self.history_size = history_size
