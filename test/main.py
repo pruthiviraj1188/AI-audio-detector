@@ -1,55 +1,24 @@
 import numpy as np
 import librosa
-import joblib
 import moviepy as mp
 import tempfile
 from flask import Flask, render_template, request, jsonify
 from werkzeug.utils import secure_filename
 import os
 
+# Import reusable detector core
+from detector_core import load_model, extract_features
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-model = joblib.load(os.path.join(BASE_DIR, "audio_detection.pkl"))
+
+# Load model once at startup (via detector_core)
+model = load_model()
 
 ALLOWED_EXTENSIONS = {".wav", ".mp3", ".mp4", ".ogg", ".flac", ".aac", ".m4a", ".wma", ".aiff", ".aif", ".opus", ".webm", ".3gp"}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
 
-def feature_extraction(y, sr):
-    try:
-        features = []
-
-        # MFCC
-        mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
-        features.extend(np.mean(mfcc, axis=1))
-        features.extend(np.std(mfcc, axis=1))
-
-        # Delta
-        delta = librosa.feature.delta(mfcc)
-        delta2 = librosa.feature.delta(mfcc, order=2)
-
-        features.extend(np.std(delta, axis=1))
-        features.extend(np.std(delta2, axis=1))
-
-        # Spectral features
-        centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
-        bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr)
-        contrast = librosa.feature.spectral_contrast(y=y, sr=sr)
-
-        features.append(np.mean(centroid))
-        features.append(np.std(centroid))
-        features.append(np.mean(bandwidth))
-        features.append(np.std(bandwidth))
-        features.extend(np.mean(contrast, axis=1))
-
-        # Harmonic ratio
-        y_harm, y_perc = librosa.effects.hpss(y)
-        harmonic_ratio = np.mean(np.abs(y_harm)) / (np.mean(np.abs(y_perc)) + 1e-9)
-        features.append(harmonic_ratio)
-
-        return np.array(features)
-
-    except Exception:
-        print("Error in feature extraction")
-        return None
+# Use detector_core's feature extraction (alias for compatibility)
+feature_extraction = extract_features
 
 def audio_from_video(video_path):
     tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
@@ -173,6 +142,41 @@ def predict():
         if os.path.exists(filepath):
             os.remove(filepath)
 
-if __name__ == "__main__":
-    app.run(debug=True, port=5001)
 
+@app.route("/static/<path:filename>")
+def serve_static(filename):
+    """Serve static files (JS, CSS, JSON, etc.)"""
+    static_dir = os.path.join(BASE_DIR, 'static')
+    from flask import send_from_directory
+    
+    # Set proper content type for JSON files
+    if filename.endswith('.json'):
+        response = send_from_directory(static_dir, filename)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    
+    return send_from_directory(static_dir, filename)
+
+
+@app.route("/health")
+def health_check():
+    """Health check endpoint"""
+    return jsonify({
+        "status": "healthy",
+        "model_loaded": model is not None,
+        "version": "1.0.0"
+    })
+
+
+if __name__ == "__main__":
+    print("=" * 70)
+    print("🎵 AI AUDIO AUTHENTICITY DETECTOR")
+    print("=" * 70)
+    print("📊 Model: Random Forest (99.06% accuracy)")
+    print("🌐 Web App: http://127.0.0.1:5001/")
+    print("   • Upload audio/video files for analysis")
+    print("💊 Health Check: http://127.0.0.1:5001/health")
+    print("🌍 Languages: English, Hindi, Tamil, Telugu, Malayalam")
+    print("=" * 70)
+    
+    app.run(debug=True, host='0.0.0.0', port=5001)

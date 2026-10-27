@@ -32,7 +32,16 @@ y_val = df_val["label"].values
 
 print("Training model...")
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
-model = RandomForestClassifier(n_estimators=600, max_depth=30, min_samples_leaf=2, class_weight="balanced_subsample", random_state=42)
+model = RandomForestClassifier(
+    n_estimators=150,
+    max_depth=10,
+    min_samples_leaf=15,
+    min_samples_split=20,
+    max_features='sqrt',
+    class_weight="balanced_subsample",
+    random_state=42,
+    n_jobs=-1
+)
 model.fit(X_train, y_train)
 
 print("Validation Accuracy:", accuracy_score(y_val, model.predict(X_val)))

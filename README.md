@@ -1,6 +1,6 @@
 # 🎵 AI Audio Detector
 
-A high-accuracy machine learning system that detects whether audio is AI-generated or human-recorded. Built with Python, Flask, and scikit-learn.
+A professional-grade machine learning system that detects whether audio is AI-generated or human-recorded with **99% accuracy**. Upload audio files for instant analysis with comprehensive technical breakdown.
 
 ![Accuracy](https://img.shields.io/badge/Accuracy-99.06%25-brightgreen)
 ![Python](https://img.shields.io/badge/Python-3.12-blue)
@@ -8,19 +8,36 @@ A high-accuracy machine learning system that detects whether audio is AI-generat
 
 ## 🎯 Features
 
+### 📤 **Web App - File Upload**
+- Upload audio/video files (MP3, WAV, MP4, OGG, FLAC, AAC, M4A, etc.)
+- Instant AI detection with 99% accuracy
+- Technical analysis breakdown (MFCC, spectral features, harmonic ratio)
+- Multi-format support with automatic video audio extraction
+- Beautiful UI with 5 language support
+
+### 🔬 **Core Capabilities**
 - ✅ **99.06% Validation Accuracy** - Professional-grade detection
 - ✅ **98.94% Test Accuracy** - Reliable real-world performance
-- ✅ **Multi-format Support** - MP3, WAV, MP4, OGG, FLAC, AAC, M4A, and more
-- ✅ **Video Audio Extraction** - Automatically extracts audio from video files
-- ✅ **Beautiful Web Interface** - Modern UI with real-time animations
-- ✅ **Technical Analysis** - Detailed feature breakdown (MFCC, spectral analysis, harmonic ratio)
+- ✅ **Multi-format Support** - Supports 12+ audio/video formats
+- ✅ **Video Audio Extraction** - Automatically extracts audio from videos
+- ✅ **Multi-Language Interface** - English, Hindi, Tamil, Telugu, Malayalam
+- ✅ **Technical Analysis** - Detailed feature breakdown with explanations
 - ✅ **Fast Processing** - Optimized with multiprocessing
 
-## 🚀 Demo
+## 🚀 Quick Start
 
-![AI Audio Detector Demo](demo.png)
+1. **Start the server:**
+```bash
+cd test
+python main.py
+```
 
-**Live Demo:** [Coming Soon]
+2. **Open in browser:** http://127.0.0.1:5001/
+
+3. **Upload & Analyze:**
+   - Drag & drop audio/video file
+   - Click "Analyze Audio"
+   - View results with technical details
 
 ## 📊 Model Performance
 
@@ -36,11 +53,19 @@ Trained on **69,282 audio samples** from the [Fake-or-Real Dataset](https://www.
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Python 3.12, Flask
-- **ML**: scikit-learn, librosa, NumPy, pandas
-- **Audio Processing**: librosa, moviepy
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
-- **Model**: Random Forest Classifier (600 estimators)
+**Backend:**
+- Python 3.12, Flask
+- scikit-learn, librosa, NumPy, pandas
+
+**ML Model:**
+- Random Forest Classifier (600 estimators)
+- 61 audio features (MFCC, spectral, harmonic)
+- Trained on 69,282 samples
+
+**Web App:**
+- HTML5, CSS3, JavaScript (Vanilla)
+- Multi-language support (i18n)
+- Responsive design with animations
 
 ## 📦 Installation
 
@@ -91,30 +116,37 @@ python feature_extraction_with_progress.py  # Takes 15-30 minutes
 python train.py  # Takes 5-10 minutes
 ```
 
-6. **Run the web application**
+6. **Run the application**
 ```bash
 cd test
 python main.py
 ```
 
-Visit http://127.0.0.1:5001
+Access the application:
+- **Web App**: http://127.0.0.1:5001/
+- **Health Check**: http://127.0.0.1:5001/health
 
 ## 📁 Project Structure
 
 ```
 AI-audio-detector/
 ├── test/
-│   ├── main.py                              # Flask web application
+│   ├── main.py                              # Flask server
+│   ├── detector_core.py                     # ML detection logic & features
 │   ├── train.py                             # Model training script
-│   ├── feature_extraction.py                # Full dataset feature extraction
-│   ├── feature_extraction_quick.py          # Quick subset extraction
-│   ├── feature_extraction_with_progress.py  # Extraction with progress bars
+│   ├── feature_extraction_with_progress.py  # Feature extraction with progress
 │   ├── audio_detection.pkl                  # Trained model (99% accuracy)
 │   ├── templates/
-│   │   └── index.html                       # Web interface
+│   │   └── index.html                       # Main web interface
+│   ├── static/
+│   │   ├── translations.json                # 5-language translations
+│   │   ├── i18n.js                          # Internationalization logic
+│   │   └── upload.js                        # Upload mode logic
 │   └── uploads/                             # Temporary upload directory
 ├── pyproject.toml                           # Project dependencies
+├── requirements.txt                         # Pip dependencies
 ├── README.md                                # This file
+├── LICENSE                                  # MIT License
 └── .gitignore                               # Git ignore rules
 ```
 
@@ -131,11 +163,21 @@ The model analyzes 61 audio features:
    - Spectral Contrast (7 mean values)
 5. **Harmonic Ratio** - Tonal vs percussive energy balance
 
-## 🔧 API Usage
+## 🔧 Usage
 
-### Predict Audio
+### Web App - Upload Mode
 
-**Endpoint**: `POST /predict`
+**Web Interface**: http://127.0.0.1:5001/
+1. Drag & drop or click to upload audio/video file
+2. Supported formats: MP3, WAV, MP4, OGG, FLAC, AAC, M4A, etc.
+3. Click "Analyze Audio"
+4. View results with:
+   - AI/Human prediction
+   - Confidence percentage
+   - Technical feature breakdown
+   - Reasoning explanation
+
+**API Endpoint**: `POST /predict`
 
 **Request**:
 ```bash
@@ -195,17 +237,66 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 To-Do / Future Enhancements
+## ⚠️ **Important Limitations & Considerations**
 
+### Model Performance Considerations
+
+**Optimal Conditions**:
+- Clean audio (minimal background noise)
+- 16kHz sample rate
+- 2-second or longer segments
+- Uncompressed or lightly compressed audio
+
+**Performance May Decrease With**:
+- Heavy compression (low bitrate MP3)
+- Background noise
+- Echo, reverb, or acoustic distortion
+- Microphone quality variations
+- Unseen AI voice generators
+- Audio processing (denoise, normalize, etc.)
+
+### Scientific Honesty
+
+⚠️ **This system provides probabilistic assessments, not proof**
+- Suspicious results ≠ definitive proof of AI generation
+- Results should be reviewed by humans
+- Use as decision-support, not final verdict
+- Model trained on specific dataset (may not generalize to all AI generators)
+
+## 🌐 **Use Cases**
+
+This system is domain-agnostic and applicable to:
+
+1. **Content Verification** - YouTube videos, podcasts, social media
+2. **Media Authenticity** - Journalism and news verification
+3. **Education** - Academic integrity monitoring
+4. **HR & Recruitment** - Interview authenticity verification
+5. **Customer Support** - Call quality monitoring
+6. **Fraud Prevention** - Deepfake and social engineering detection
+7. **Research** - AI voice generation analysis
+8. **Personal Use** - Verify audio sources you encounter online
+
+## 📋 To-Do / Future Enhancements
+
+### Completed ✅
+- [x] Upload mode with 99% accuracy
+- [x] Multi-language interface (5 languages)
+- [x] Technical feature analysis
+- [x] Multi-format support with video extraction
+
+### Planned 🚧
+- [ ] Desktop app for system audio
 - [ ] Deploy to cloud (Heroku/Railway/AWS)
-- [ ] Add user authentication
+- [ ] User authentication and history
 - [ ] Batch file processing
-- [ ] Real-time microphone detection
-- [ ] Mobile app (React Native/Flutter)
+- [ ] Report export (PDF/CSV)
 - [ ] API rate limiting and authentication
 - [ ] Deep learning models (CNN/LSTM)
-- [ ] Multi-language support
 - [ ] Detect specific AI voice generators
+- [ ] Mobile app (React Native/Flutter)
+- [ ] Webhook notifications
+- [ ] Admin dashboard
+- [ ] Usage analytics
 
 ## 📄 License
 

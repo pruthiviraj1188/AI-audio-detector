@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AI Audio Detector</title>
+    <title data-i18n="app_title">AI Audio Detector</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -12,7 +14,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
         canvas {
@@ -21,46 +23,108 @@
             z-index: 0;
         }
 
-        /* Aurora blobs */
+        /* Aurora blobs - Enhanced */
         .aurora {
             position: fixed;
             z-index: 0;
             border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.18;
+            filter: blur(100px);
+            opacity: 0.2;
             animation: drift 18s ease-in-out infinite;
         }
         .aurora-1 {
-            width: 600px; height: 600px;
-            background: radial-gradient(circle, #7c3aed, transparent);
-            top: -150px; left: -100px;
-            animation-duration: 20s;
+            width: 700px; height: 700px;
+            background: radial-gradient(circle, #7c3aed, #a78bfa, transparent);
+            top: -200px; left: -150px;
+            animation: drift1 25s ease-in-out infinite;
         }
         .aurora-2 {
-            width: 500px; height: 500px;
-            background: radial-gradient(circle, #2563eb, transparent);
-            bottom: -100px; right: -100px;
-            animation-duration: 25s;
-            animation-delay: -8s;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, #2563eb, #60a5fa, transparent);
+            bottom: -150px; right: -150px;
+            animation: drift2 30s ease-in-out infinite;
         }
         .aurora-3 {
-            width: 400px; height: 400px;
-            background: radial-gradient(circle, #0ea5e9, transparent);
-            top: 40%; left: 50%;
-            animation-duration: 22s;
-            animation-delay: -4s;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, #0ea5e9, #38bdf8, transparent);
+            top: 30%; left: 60%;
+            animation: drift3 28s ease-in-out infinite;
+        }
+        .aurora-4 {
+            width: 450px; height: 450px;
+            background: radial-gradient(circle, #8b5cf6, transparent);
+            top: 50%; right: 10%;
+            animation: drift4 32s ease-in-out infinite;
+            opacity: 0.15;
         }
 
-        @keyframes drift {
+        @keyframes drift1 {
+            0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            25% { transform: translate(60px, -50px) scale(1.1) rotate(90deg); }
+            50% { transform: translate(40px, 30px) scale(0.95) rotate(180deg); }
+            75% { transform: translate(-40px, 50px) scale(1.05) rotate(270deg); }
+        }
+
+        @keyframes drift2 {
+            0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            25% { transform: translate(-50px, 40px) scale(1.08) rotate(-90deg); }
+            50% { transform: translate(30px, -40px) scale(0.92) rotate(-180deg); }
+            75% { transform: translate(50px, -30px) scale(1.03) rotate(-270deg); }
+        }
+
+        @keyframes drift3 {
             0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(40px, -30px) scale(1.05); }
-            66% { transform: translate(-30px, 40px) scale(0.95); }
+            33% { transform: translate(-60px, 50px) scale(1.12); }
+            66% { transform: translate(50px, -60px) scale(0.88); }
+        }
+
+        @keyframes drift4 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-80px, -70px) scale(1.15); }
+        }
+
+        /* Language Selector - Top Left */
+        .language-selector {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            z-index: 100;
+        }
+
+        .language-selector select {
+            padding: 10px 16px;
+            background: rgba(10, 10, 30, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #f1f5f9;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .language-selector select:hover {
+            background: rgba(10, 10, 30, 0.85);
+            border-color: rgba(124, 58, 237, 0.4);
+        }
+
+        .language-selector select option {
+            background: #0a0a1e;
+            color: #f1f5f9;
         }
 
         .container {
             position: relative;
             z-index: 2;
             text-align: center;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
 
         .card {
@@ -70,14 +134,38 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 28px;
             padding: 48px 56px;
-            width: 460px;
+            width: 520px;
             box-shadow:
                 0 0 0 1px rgba(124, 58, 237, 0.1),
                 0 30px 60px rgba(0, 0, 0, 0.6),
                 inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            position: relative;
+            overflow: hidden;
         }
 
-        /* Animated equalizer bars */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(124, 58, 237, 0.1) 50%,
+                transparent 70%
+            );
+            animation: shimmer 8s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translate(-100%, -100%) rotate(45deg); }
+            100% { transform: translate(100%, 100%) rotate(45deg); }
+        }
+
+        /* Animated equalizer bars - Enhanced */
         .eq-bars {
             display: flex;
             align-items: flex-end;
@@ -85,13 +173,16 @@
             gap: 3px;
             height: 30px;
             margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
         }
 
         .eq-bar {
             width: 3px;
             border-radius: 2px;
-            background: linear-gradient(to top, #7c3aed, #38bdf8);
+            background: linear-gradient(to top, #7c3aed, #a78bfa, #38bdf8);
             animation: eq 1.4s ease-in-out infinite;
+            box-shadow: 0 0 8px rgba(124, 58, 237, 0.5);
         }
 
         .eq-bar:nth-child(1)  { height: 8px;  animation-delay: 0.0s; }
@@ -108,7 +199,7 @@
 
         @keyframes eq {
             0%, 100% { transform: scaleY(0.3); opacity: 0.5; }
-            50%       { transform: scaleY(1);   opacity: 1; }
+            50%       { transform: scaleY(1);   opacity: 1; box-shadow: 0 0 12px rgba(124, 58, 237, 0.8); }
         }
 
         h1 {
@@ -117,12 +208,20 @@
             font-weight: 700;
             letter-spacing: 0.3px;
             margin-bottom: 6px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
         }
 
         .subtitle {
             color: rgba(148, 163, 184, 0.6);
             font-size: 13px;
-            margin-bottom: 36px;
+            margin-bottom: 28px;
+        }
+
+        /* Upload Mode Content */
+        #uploadModeContent {
+            display: block;
         }
 
         .upload-area {
@@ -140,6 +239,7 @@
             border-color: rgba(99, 179, 237, 0.6);
             background: rgba(56, 189, 248, 0.04);
             transform: translateY(-1px);
+            box-shadow: 0 8px 32px rgba(56, 189, 248, 0.2);
         }
 
         .upload-area input[type="file"] {
@@ -176,7 +276,7 @@
             display: none;
         }
 
-        button {
+        button.action-btn {
             width: 100%;
             padding: 14px;
             background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
@@ -191,12 +291,12 @@
             box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
         }
 
-        button:hover:not(:disabled) {
+        button.action-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 8px 30px rgba(124, 58, 237, 0.5);
         }
 
-        button:disabled {
+        button.action-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
@@ -313,6 +413,11 @@
             from { opacity: 0; transform: translateY(12px); }
             to   { opacity: 1; transform: translateY(0); }
         }
+
+        @media (max-width: 768px) {
+            .card { width: 90%; padding: 32px 24px; }
+            .language-selector { top: 16px; left: 16px; }
+        }
     </style>
 </head>
 <body>
@@ -321,9 +426,21 @@
 <div class="aurora aurora-1"></div>
 <div class="aurora aurora-2"></div>
 <div class="aurora aurora-3"></div>
+<div class="aurora aurora-4"></div>
 
 <!-- Particle canvas -->
 <canvas id="canvas"></canvas>
+
+<!-- Language Selector -->
+<div class="language-selector">
+    <select id="languageSelect">
+        <option value="en">English</option>
+        <option value="hi">हिंदी (Hindi)</option>
+        <option value="ta">தமிழ் (Tamil)</option>
+        <option value="te">తెలుగు (Telugu)</option>
+        <option value="ml">മലയാളം (Malayalam)</option>
+    </select>
+</div>
 
 <div class="container">
     <div class="card">
@@ -341,26 +458,32 @@
             <div class="eq-bar"></div>
         </div>
 
-        <h1>AI Audio Detector</h1>
-        <p class="subtitle">Detect whether audio is AI generated or human</p>
+        <h1 data-i18n="app_title">AI Audio Detector</h1>
+        <p class="subtitle" data-i18n="app_subtitle">Detect AI-generated audio with 99% accuracy</p>
 
-        <form id="uploadForm">
-            <div class="upload-area">
-                <input type="file" name="file" accept=".mp3,.wav,.mp4,.ogg,.flac,.aac,.m4a,.wma,.aiff,.aif,.opus,.webm,.3gp" required id="fileInput">
-                <div class="upload-icon">🎵</div>
-                <div class="upload-text"><span>Click to upload</span> or drag & drop</div>
-                <div class="file-types">MP3 · WAV · MP4 · OGG · FLAC · AAC · M4A · WMA · AIFF · OPUS · WEBM · 3GP</div>
-                <div class="selected-file" id="selectedFile"></div>
-            </div>
-            <button type="submit" id="analyzeBtn">Analyze Audio</button>
-        </form>
+        <!-- Upload Mode Content -->
+        <div id="uploadModeContent">
+            <form id="uploadForm">
+                <div class="upload-area">
+                    <input type="file" name="file" accept=".mp3,.wav,.mp4,.ogg,.flac,.aac,.m4a,.wma,.aiff,.aif,.opus,.webm,.3gp" required id="fileInput">
+                    <div class="upload-icon">🎵</div>
+                    <div class="upload-text"><span data-i18n="upload_button">Choose File</span> <span data-i18n="upload_or">or drag and drop</span></div>
+                    <div class="file-types" data-i18n="upload_formats">Supported: MP3, WAV, MP4, OGG, FLAC, AAC, M4A</div>
+                    <div class="selected-file" id="selectedFile"></div>
+                </div>
+                <button type="submit" class="action-btn" id="analyzeBtn" data-i18n="analyze_button">Analyze Audio</button>
+            </form>
 
-        <div class="result" id="result"></div>
+            <div class="result" id="result"></div>
+        </div>
     </div>
 </div>
 
+<script src="/static/i18n.js"></script>
+<script src="/static/upload.js"></script>
+
 <script>
-    // Particle network
+    // Particle network animation
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
@@ -371,47 +494,81 @@
     resize();
     window.addEventListener('resize', resize);
 
-    const particles = Array.from({ length: 70 }, () => ({
+    const particles = Array.from({ length: 100 }, () => ({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        r: Math.random() * 1.5 + 0.5,
-        vx: (Math.random() - 0.5) * 0.25,
-        vy: (Math.random() - 0.5) * 0.25,
-        opacity: Math.random() * 0.35 + 0.1
+        r: Math.random() * 2 + 0.5,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        opacity: Math.random() * 0.5 + 0.2,
+        pulseSpeed: Math.random() * 0.02 + 0.01,
+        pulsePhase: Math.random() * Math.PI * 2
     }));
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // connections
+        const time = Date.now() * 0.001;
+
+        // Draw connections with gradient
         for (let i = 0; i < particles.length; i++) {
             for (let j = i + 1; j < particles.length; j++) {
                 const dx = particles[i].x - particles[j].x;
                 const dy = particles[i].y - particles[j].y;
                 const d = Math.sqrt(dx * dx + dy * dy);
-                if (d < 130) {
+                if (d < 150) {
+                    const gradient = ctx.createLinearGradient(
+                        particles[i].x, particles[i].y,
+                        particles[j].x, particles[j].y
+                    );
+                    const alpha = 0.15 * (1 - d / 150);
+                    gradient.addColorStop(0, `rgba(124, 58, 237, ${alpha})`);
+                    gradient.addColorStop(0.5, `rgba(56, 189, 248, ${alpha * 1.2})`);
+                    gradient.addColorStop(1, `rgba(37, 99, 235, ${alpha})`);
+                    
                     ctx.beginPath();
                     ctx.moveTo(particles[i].x, particles[i].y);
                     ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.strokeStyle = `rgba(124, 58, 237, ${0.12 * (1 - d / 130)})`;
-                    ctx.lineWidth = 0.6;
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = 0.8;
                     ctx.stroke();
                 }
             }
         }
 
-        // dots
+        // Draw particles with pulsing effect
         particles.forEach(p => {
+            // Update position
             p.x += p.vx;
             p.y += p.vy;
+            
+            // Wrap around edges
             if (p.x < 0) p.x = canvas.width;
             if (p.x > canvas.width) p.x = 0;
             if (p.y < 0) p.y = canvas.height;
             if (p.y > canvas.height) p.y = 0;
 
+            // Pulsing effect
+            p.pulsePhase += p.pulseSpeed;
+            const pulse = Math.sin(p.pulsePhase) * 0.3 + 0.7;
+            const currentR = p.r * pulse;
+            const currentOpacity = p.opacity * pulse;
+
+            // Draw particle with glow
+            const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, currentR * 3);
+            gradient.addColorStop(0, `rgba(168, 139, 250, ${currentOpacity})`);
+            gradient.addColorStop(0.5, `rgba(139, 92, 246, ${currentOpacity * 0.5})`);
+            gradient.addColorStop(1, `rgba(124, 58, 237, 0)`);
+
             ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(148, 163, 255, ${p.opacity})`;
+            ctx.arc(p.x, p.y, currentR * 3, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            // Draw core
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, currentR, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(196, 181, 253, ${currentOpacity})`;
             ctx.fill();
         });
 
@@ -419,126 +576,6 @@
     }
 
     draw();
-
-    // File input
-    document.getElementById('fileInput').addEventListener('change', function () {
-        const label = document.getElementById('selectedFile');
-        if (this.files[0]) {
-            label.textContent = '✓ ' + this.files[0].name;
-            label.style.display = 'block';
-        }
-    });
-
-    // Form submit
-    document.getElementById('uploadForm').onsubmit = async function (e) {
-        e.preventDefault();
-        const btn = document.getElementById('analyzeBtn');
-        const result = document.getElementById('result');
-
-        btn.disabled = true;
-        btn.textContent = 'Analyzing...';
-        result.style.display = 'none';
-        result.className = 'result';
-
-        try {
-            const res = await fetch('/predict', { method: 'POST', body: new FormData(this) });
-            const data = await res.json();
-
-            if (data.error) {
-                result.textContent = '⚠️ ' + data.error;
-                result.classList.add('error');
-            } else if (data.prediction === 'Human Audio') {
-                const pct = parseFloat(data.confidence);
-                const humanPct = (100 - pct).toFixed(1);
-                const t = data.technical;
-                result.classList.add('human');
-
-                let reason = '';
-                if (humanPct >= 90) reason = 'Very natural speech patterns, consistent rhythm, and organic vocal variations detected.';
-                else if (humanPct >= 75) reason = 'Strong human vocal characteristics found — natural breathing, tone variation, and irregular cadence.';
-                else if (humanPct >= 60) reason = 'Mostly human traits detected, though some segments showed minor synthetic patterns.';
-                else reason = 'Leans human, but confidence is moderate. Audio may be short or have background noise.';
-
-                result.innerHTML = `
-                    <div class="result-label">✅ Human Audio</div>
-                    <div class="progress-wrap"><div class="progress-bar" style="width:0%" id="pbar"></div></div>
-                    <div class="progress-label"><span>Human confidence</span><span>${humanPct}%</span></div>
-                    <div class="result-reason">${reason}</div>
-                    <div class="tech-grid">
-                        <div class="tech-item">
-                            <div class="tech-label">MFCC Variance</div>
-                            <div class="tech-value">${t.mfcc_variance}</div>
-                            <div class="tech-desc">High variance = natural vocal irregularity</div>
-                        </div>
-                        <div class="tech-item">
-                            <div class="tech-label">Spectral Centroid</div>
-                            <div class="tech-value">${t.spectral_centroid} Hz</div>
-                            <div class="tech-desc">Brightness of the audio signal</div>
-                        </div>
-                        <div class="tech-item">
-                            <div class="tech-label">Harmonic Ratio</div>
-                            <div class="tech-value">${t.harmonic_ratio}</div>
-                            <div class="tech-desc">Tonal vs percussive energy balance</div>
-                        </div>
-                        <div class="tech-item">
-                            <div class="tech-label">Chunks Analyzed</div>
-                            <div class="tech-value">${t.chunks_analyzed} segments</div>
-                            <div class="tech-desc">2-second audio chunks processed</div>
-                        </div>
-                    </div>
-                `;
-                setTimeout(() => document.getElementById('pbar').style.width = humanPct + '%', 50);
-            } else {
-                const pct = parseFloat(data.confidence);
-                const t = data.technical;
-                result.classList.add('ai');
-
-                let reason = '';
-                if (pct >= 90) reason = 'Highly uniform pitch, robotic cadence, and absence of natural breathing patterns detected.';
-                else if (pct >= 75) reason = 'Strong AI markers found — unnatural smoothness, consistent tone, and lack of vocal imperfections.';
-                else if (pct >= 60) reason = 'Several AI-like patterns detected, such as flat intonation and overly clean audio quality.';
-                else reason = 'Leans AI-generated, but confidence is moderate. Consider uploading a longer audio clip.';
-
-                result.innerHTML = `
-                    <div class="result-label">🤖 AI Generated Audio</div>
-                    <div class="progress-wrap"><div class="progress-bar" style="width:0%" id="pbar"></div></div>
-                    <div class="progress-label"><span>AI confidence</span><span>${pct.toFixed(1)}%</span></div>
-                    <div class="result-reason">${reason}</div>
-                    <div class="tech-grid">
-                        <div class="tech-item">
-                            <div class="tech-label">MFCC Variance</div>
-                            <div class="tech-value">${t.mfcc_variance}</div>
-                            <div class="tech-desc">Low variance = synthetic uniformity</div>
-                        </div>
-                        <div class="tech-item">
-                            <div class="tech-label">Spectral Centroid</div>
-                            <div class="tech-value">${t.spectral_centroid} Hz</div>
-                            <div class="tech-desc">Brightness of the audio signal</div>
-                        </div>
-                        <div class="tech-item">
-                            <div class="tech-label">Harmonic Ratio</div>
-                            <div class="tech-value">${t.harmonic_ratio}</div>
-                            <div class="tech-desc">Tonal vs percussive energy balance</div>
-                        </div>
-                        <div class="tech-item">
-                            <div class="tech-label">Chunks Analyzed</div>
-                            <div class="tech-value">${t.chunks_analyzed} segments</div>
-                            <div class="tech-desc">2-second audio chunks processed</div>
-                        </div>
-                    </div>
-                `;
-                setTimeout(() => document.getElementById('pbar').style.width = pct + '%', 50);
-            }
-            result.style.display = 'block';
-        } catch {
-            result.textContent = '⚠️ Could not connect to server.';
-            result.classList.add('error');
-            result.style.display = 'block';
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Analyze Audio';
-        }
-    };
 </script>
 </body>
 </html>
