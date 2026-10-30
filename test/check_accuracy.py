@@ -1,117 +1,106 @@
 #!/usr/bin/env python3
 """
-Check the accuracy of the trained model on all datasets
+Accuracy Check: Evaluate model performance on test data
 """
-import pandas as pd
-import numpy as np
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
 import joblib
+import numpy as np
+import pandas as pd
 import os
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_curve, auc
 
-BASE_DIR = os.path.dirname(__file__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "audio_detection.pkl")
 
-# Define column names (61 features + label)
-columns = []
-columns += [f"mfcc_mean_{i}" for i in range(13)]
-columns += [f"mfcc_std_{i}" for i in range(13)]
-columns += [f"delta_std_{i}" for i in range(13)]
-columns += [f"delta2_std_{i}" for i in range(13)]
-columns += ["centroid_mean", "centroid_std", "bandwidth_mean", "bandwidth_std"]
-columns += [f"contrast_mean_{i}" for i in range(7)]
-columns += ["harmonic_ratio", "label"]
-
-print("=" * 70)
-print("🎯 AI AUDIO DETECTOR - MODEL ACCURACY CHECK")
-print("=" * 70)
+print("=" * 80)
+print("MODEL ACCURACY CHECK")
+print("=" * 80)
 
 # Load model
-print("\n📦 Loading model...")
-model_path = os.path.join(BASE_DIR, "audio_detection.pkl")
-model = joblib.load(model_path)
-print(f"✅ Model loaded: {type(model).__name__}")
-print(f"   Estimators: {model.n_estimators}")
-print(f"   Max Depth: {model.max_depth}")
+model = joblib.load(MODEL_PATH)
+print(f"\n✅ Model loaded: {type(model).__name__}")
 
-# Load datasets
-print("\n📊 Loading datasets...")
-df_train = pd.read_csv(os.path.join(BASE_DIR, "train-norm.csv"), names=columns)
-df_val = pd.read_csv(os.path.join(BASE_DIR, "val-norm.csv"), names=columns)
-df_test = pd.read_csv(os.path.join(BASE_DIR, "test-norm.csv"), names=columns)
+# Load test data
+test_csv = os.path.join(BASE_DIR, "test-norm.csv")
+print(f"\n📂 Loading test data from: {test_csv}")
+df_test = pd.read_csv(test_csv)
+print(f"   Total samples: {len(df_test)}")
 
-print(f"   Training samples: {len(df_train):,}")
-print(f"   Validation samples: {len(df_val):,}")
-print(f"   Test samples: {len(df_test):,}")
-print(f"   Total samples: {len(df_train) + len(df_val) + len(df_test):,}")
+# Separate features and labels
+X_test = df_test.iloc[:, :-1].values
+y_test = df_test.iloc[:, -1].values
 
-# Prepare data
-X_train = df_train.drop("label", axis=1).values
-y_train = df_train["label"].values
+print(f"   Feature dimensions: {X_test.shape}")
+print(f"   Label distribution: {np.bincount(y_test.astype(int))}")
+print(f"   Human (0): {np.sum(y_test == 0)} samples")
+print(f"   AI (1): {np.sum(y_test == 1)} samples")
 
-X_val = df_val.drop("label", axis=1).values
-y_val = df_val["label"].values
+# Get predictions
+print(f"\n🔮 Making predictions...")
+y_pred = model.predict(X_test)
+y_pred_proba = model.predict_proba(X_test)
 
-X_test = df_test.drop("label", axis=1).values
-y_test = df_test["label"].values
-
-# Calculate accuracies
-print("\n" + "=" * 70)
-print("📈 ACCURACY RESULTS")
-print("=" * 70)
-
-# Training accuracy
-y_train_pred = model.predict(X_train)
-train_acc = accuracy_score(y_train, y_train_pred)
-print(f"\n🔵 Training Accuracy:   {train_acc * 100:.2f}%")
-
-# Validation accuracy
-y_val_pred = model.predict(X_val)
-val_acc = accuracy_score(y_val, y_val_pred)
-print(f"🟢 Validation Accuracy: {val_acc * 100:.2f}%")
-
-# Test accuracy
-y_test_pred = model.predict(X_test)
-test_acc = accuracy_score(y_test, y_test_pred)
-print(f"🟡 Test Accuracy:       {test_acc * 100:.2f}%")
-
-# Detailed classification report for test set
-print("\n" + "=" * 70)
-print("📋 DETAILED CLASSIFICATION REPORT (Test Set)")
-print("=" * 70)
-print("\nClass Labels: 0 = Human, 1 = AI Generated")
-print("\n" + classification_report(y_test, y_test_pred, 
-                                    target_names=["Human Audio", "AI Generated"],
-                                    digits=4))
+# Calculate accuracy
+acc = accuracy_score(y_test, y_pred)
+print(f"\n📊 Overall Accuracy: {acc:.4f} ({acc*100:.2f}%)")
 
 # Confusion matrix
-print("\n" + "=" * 70)
-print("🔢 CONFUSION MATRIX (Test Set)")
-print("=" * 70)
-cm = confusion_matrix(y_test, y_test_pred)
-print("\n                Predicted")
-print("              Human    AI")
-print(f"Actual Human   {cm[0][0]:5d}  {cm[0][1]:5d}")
-print(f"       AI      {cm[1][0]:5d}  {cm[1][1]:5d}")
+cm = confusion_matrix(y_test, y_pred)
+tn, fp, fn, tp = cm.ravel()
+print(f"\n📋 Confusion Matrix:")
+print(f"   True Negatives (TN):  {tn}  - Correctly identified HUMAN")
+print(f"   False Positives (FP): {fp}  - Human marked as AI")
+print(f"   False Negatives (FN): {fn}  - AI marked as HUMAN ⚠️")
+print(f"   True Positives (TP):  {tp}  - Correctly identified AI")
 
-# Calculate per-class accuracy
-human_acc = cm[0][0] / (cm[0][0] + cm[0][1]) if (cm[0][0] + cm[0][1]) > 0 else 0
-ai_acc = cm[1][1] / (cm[1][0] + cm[1][1]) if (cm[1][0] + cm[1][1]) > 0 else 0
+# Classification metrics
+print(f"\n📈 Classification Metrics:")
+print(f"   Precision (AI): {tp / (tp + fp):.4f}")  # Of predicted AI, how many were correct
+print(f"   Recall (AI):    {tp / (tp + fn):.4f}")  # Of actual AI, how many were found
+print(f"   F1 Score:       {2 * tp / (2*tp + fp + fn):.4f}")
 
-print(f"\nHuman Audio Detection Accuracy: {human_acc * 100:.2f}%")
-print(f"AI Audio Detection Accuracy:    {ai_acc * 100:.2f}%")
+# Probability analysis
+print(f"\n🎯 Probability Analysis (P(AI)):")
+p_ai = y_pred_proba[:, 1]
+print(f"   Min P(AI):     {np.min(p_ai):.4f}")
+print(f"   Max P(AI):     {np.max(p_ai):.4f}")
+print(f"   Mean P(AI):    {np.mean(p_ai):.4f}")
+print(f"   Median P(AI):  {np.median(p_ai):.4f}")
+print(f"   Std P(AI):     {np.std(p_ai):.4f}")
 
-# Feature importance (top 10)
-print("\n" + "=" * 70)
-print("🎯 TOP 10 MOST IMPORTANT FEATURES")
-print("=" * 70)
-feature_names = columns[:-1]  # Exclude 'label'
-importances = model.feature_importances_
-indices = np.argsort(importances)[::-1][:10]
+# Count predictions at different thresholds
+print(f"\n🔢 Predictions by Threshold:")
+for thresh in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]:
+    preds_at_thresh = (p_ai > thresh).sum()
+    print(f"   Threshold {thresh}: {preds_at_thresh} AI predictions ({100*preds_at_thresh/len(p_ai):.1f}%)")
 
-print("\nRank  Feature                      Importance")
-print("-" * 50)
-for i, idx in enumerate(indices, 1):
-    print(f"{i:2d}.   {feature_names[idx]:25s}  {importances[idx]:.4f}")
+# Detailed classification report
+print(f"\n📑 Detailed Classification Report:")
+print(classification_report(y_test, y_pred, target_names=['Human', 'AI']))
 
-print("\n" + "=" * 70)
-print("✅ ANALYSIS COMPLETE")
-print("=" * 70)
+# ROC Analysis
+fpr, tpr, thresholds = roc_curve(y_test, p_ai)
+roc_auc = auc(fpr, tpr)
+print(f"\n📊 ROC-AUC Score: {roc_auc:.4f}")
+
+# Find optimal threshold
+j_scores = tpr - fpr
+optimal_idx = np.argmax(j_scores)
+optimal_threshold = thresholds[optimal_idx]
+print(f"   Optimal threshold (Youden): {optimal_threshold:.4f}")
+
+# Verify dataset labels match expected format
+print(f"\n✅ Dataset Validation:")
+print(f"   Unique labels in test set: {np.unique(y_test)}")
+print(f"   Expected: [0, 1] where 0=Human, 1=AI")
+
+# Issue detection
+print(f"\n⚠️  ISSUE DETECTION:")
+if fn > tp and fn > 0:
+    print(f"   🚨 HIGH FALSE NEGATIVE RATE: {fn} AI samples marked as HUMAN")
+    print(f"      This matches the reported bug!")
+if np.mean(p_ai) < 0.3:
+    print(f"   🚨 MODEL BIAS: Average P(AI) is very low ({np.mean(p_ai):.4f})")
+    print(f"      Model tends to predict HUMAN regardless of input")
+
+print("\n" + "=" * 80)
