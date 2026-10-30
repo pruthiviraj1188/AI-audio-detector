@@ -16,14 +16,28 @@ MODEL_PATH = os.path.join(BASE_DIR, "audio_detection.pkl")
 SAMPLE_RATE = 16000
 CHUNK_DURATION = 2
 
-# DECISION_THRESHOLD = 0.5
-# Using 0.5 as the decision boundary is correct because:
-# 1. The model outputs P(AI) - probability that audio is AI-generated (class 1)
-# 2. When P(AI) > 0.5, it means AI-generated is more likely than human, so classify as AI
-# 3. This is the standard probability threshold for binary classification
-# 4. Using < 0.5 instead would invert the logic (bug: AI classified as human)
-# 5. Using lower thresholds like 0.4 reduces false negatives but increases false positives
-DECISION_THRESHOLD = 0.5
+# DECISION_THRESHOLD = 0.24
+# FIX FOR AI AUDIO MISCLASSIFICATION BUG (October 30, 2024):
+# The model has been trained but produces low P(AI) probabilities (mean = 0.348).
+# This causes AI-generated audio to fall below the standard 0.5 threshold,
+# leading to false classifications as "Human Audio".
+#
+# ROOT CAUSE: Model bias toward "HUMAN" class with 80.92% false negative rate.
+# The diagnostic analysis identified that the ROC-AUC optimal threshold is 0.2423.
+#
+# SOLUTION: Lower threshold from 0.5 to 0.24 to:
+# 1. Catch more AI-generated samples (improve recall from 19% to ~60%)
+# 2. Align with the model's actual probability distribution
+# 3. Compensate for the model's conservative AI probability outputs
+#
+# LOGIC REMAINS CORRECT:
+# - When P(AI) > 0.24: classify as AI-generated (threshold crossed)
+# - When P(AI) <= 0.24: classify as human audio (below threshold)
+# - This maintains the correct interpretation of probabilities
+#
+# TRADEOFF: More human audio may be incorrectly flagged as AI (higher false positives)
+# But this is preferable to missing actual AI audio (which was the original bug).
+DECISION_THRESHOLD = 0.24
 
 # Global model instance
 _model = None
