@@ -1,0 +1,170 @@
+================================================================================
+🎵 AI AUDIO DETECTOR - PREDICTION LOGIC TEST
+================================================================================
+
+This test demonstrates the prediction logic and identifies classification issues.
+================================================================================
+
+================================================================================
+PART 1: LOAD MODEL AND REAL DATA
+================================================================================
+
+✅ Loading model from: /Users/pruthiviraj/AI-audio-detector/test/audio_detection.pkl
+   Model Type: RandomForestClassifier
+   Estimators: 250
+   Max Depth: 14
+   Classes: [0 1]
+
+✅ Loading real test data for feature analysis...
+   Found 2264 human audio samples
+   Found 2370 AI audio samples
+
+================================================================================
+PART 2: GENERATE SYNTHETIC TEST CASES
+================================================================================
+
+📝 Creating synthetic feature vectors to test prediction logic...
+
+1️⃣  TEST CASE 1: Strong AI Audio Characteristics
+   Description: High values for AI-typical features
+   - High MFCC consistency (lower variance)
+   - Low harmonic ratio (synthetic sound)
+   - Regular spectral patterns
+
+2️⃣  TEST CASE 2: Strong Human Audio Characteristics
+   Description: Characteristics typical of natural human speech
+   - High MFCC variance (natural variation)
+   - Higher harmonic ratio (natural harmonics)
+   - Varied spectral patterns
+
+================================================================================
+PART 3: TEST CURRENT PREDICTION LOGIC
+================================================================================
+
+✅ Using real AI audio sample from test dataset
+✅ Using real human audio sample from test dataset
+
+--------------------------------------------------------------------------------
+3A. RAW MODEL PROBABILITIES
+--------------------------------------------------------------------------------
+
+🤖 AI CHARACTERISTICS TEST CASE:
+   Class probabilities: [Human=0.4584, AI=0.5416]
+   P(AI) = 0.5416
+   P(Human) = 0.4584
+
+👤 HUMAN CHARACTERISTICS TEST CASE:
+   Class probabilities: [Human=0.5069, AI=0.4931]
+   P(AI) = 0.4931
+   P(Human) = 0.5069
+
+--------------------------------------------------------------------------------
+3B. CURRENT THRESHOLD APPLICATION (threshold = 0.40)
+--------------------------------------------------------------------------------
+
+Logic: If P(AI) > 0.40, classify as 'AI', else classify as 'Human'
+
+🤖 AI CHARACTERISTICS TEST CASE:
+   P(AI) = 0.5416
+   Is 0.5416 > 0.4? True
+   Prediction: 🚨 AI GENERATED
+   ✓ CORRECT - AI audio correctly identified as AI
+
+👤 HUMAN CHARACTERISTICS TEST CASE:
+   P(AI) = 0.4931
+   Is 0.4931 > 0.4? True
+   Prediction: 🚨 AI GENERATED
+   ❌ WRONG - Human audio misclassified as AI
+
+--------------------------------------------------------------------------------
+3C. CORRECTED THRESHOLD APPLICATION (threshold = 0.50)
+--------------------------------------------------------------------------------
+
+Logic: If P(AI) > 0.50, classify as 'AI', else classify as 'Human'
+This is the standard probability threshold (decision boundary)
+
+🤖 AI CHARACTERISTICS TEST CASE:
+   P(AI) = 0.5416
+   Is 0.5416 > 0.5? True
+   Prediction: 🚨 AI GENERATED
+   ✓ CORRECT - AI audio correctly identified as AI
+
+👤 HUMAN CHARACTERISTICS TEST CASE:
+   P(AI) = 0.4931
+   Is 0.4931 > 0.5? False
+   Prediction: ✅ HUMAN AUDIO
+   ✓ CORRECT - Human audio correctly identified as Human
+
+================================================================================
+PART 4: ANALYSIS AND BUG DIAGNOSIS
+================================================================================
+
+📊 MODEL'S NATIVE PREDICTIONS:
+   AI sample predicted as: AI (1)
+   Human sample predicted as: HUMAN (0)
+
+🔍 BUG ANALYSIS:
+   ✓ No obvious bug detected with threshold 0.4
+   - AI audio is correctly classified with current logic
+
+📈 THRESHOLD COMPARISON:
+   Using threshold 0.40:
+      AI sample:    0.5416 > 0.40 = True → AI
+      Human sample: 0.4931 > 0.40 = True → AI
+
+   Using threshold 0.50:
+      AI sample:    0.5416 > 0.50 = True → AI
+      Human sample: 0.4931 > 0.50 = False → HUMAN
+
+================================================================================
+PART 5: BATCH TEST ON REAL DATA (First 50 samples of each class)
+================================================================================
+
+👤 HUMAN AUDIO BATCH (50 samples):
+   P(AI) statistics:
+      Min: 0.0628
+      Mean: 0.2917
+      Max: 0.7402
+      Std: 0.1502
+   Correctly classified as HUMAN with threshold 0.40: 38/50
+   Correctly classified as HUMAN with threshold 0.50: 43/50
+
+🤖 AI AUDIO BATCH (50 samples):
+   P(AI) statistics:
+      Min: 0.0594
+      Mean: 0.3947
+      Max: 0.6415
+      Std: 0.1340
+   Correctly classified as AI with threshold 0.40: 23/50
+   Correctly classified as AI with threshold 0.50: 14/50
+
+================================================================================
+SUMMARY: KEY FINDINGS
+================================================================================
+
+📌 CURRENT BEHAVIOR:
+   - AI audio probability: 0.5416
+   - With threshold 0.40: Classified as AI
+   - With threshold 0.50: Classified as AI
+
+🐛 BUG IDENTIFICATION:
+   The issue is that AI-generated audio is being classified as HUMAN when:
+   1. The probability P(AI) is relatively low (but still > 0.5)
+   2. A threshold of 0.40 is being used instead of 0.50
+   3. Possibly the prediction logic is inverted
+
+✅ FIX REQUIRED:
+   1. Set DECISION_THRESHOLD = 0.5 (standard probability boundary)
+   2. Verify prediction logic uses: if prob > threshold → AI, else → HUMAN
+   3. Check that both detector_core.py and main.py use the same logic
+
+🔧 VERIFICATION:
+   After fix, re-run this script to confirm:
+   - AI audio samples have > 50% AI probability
+   - AI audio is classified as 'AI GENERATED'
+   - Human audio samples have < 50% AI probability
+   - Human audio is classified as 'HUMAN AUDIO'
+
+================================================================================
+✅ TEST COMPLETE
+================================================================================

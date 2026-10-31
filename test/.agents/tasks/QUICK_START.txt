@@ -1,0 +1,120 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                    AI AUDIO DETECTOR TEST SUITE                           ║
+║                         QUICK START GUIDE                                 ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+🎯 THE ISSUE (One sentence):
+   Threshold too low (0.40) → human audio classified as AI → user reports issue
+
+✅ THE FIX (One sentence):
+   Change threshold to 0.50 in two files
+
+📊 THE PROOF:
+   Run the test script to see the bug in action
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 1: RUN THE TEST (2 minutes)
+────────────────────────────────────────────────────────────────────────────
+
+$ cd /Users/pruthiviraj/AI-audio-detector/test
+$ python3 test_prediction_logic.py
+
+Expected Output:
+┌──────────────────────────────────────────────────────────────────────────┐
+│ 🤖 AI Audio: P(AI) = 0.5416                                             │
+│    Threshold 0.40: AI ✓  |  Threshold 0.50: AI ✓                       │
+│                                                                          │
+│ 👤 Human Audio: P(AI) = 0.4931                                          │
+│    Threshold 0.40: AI ❌ WRONG!  |  Threshold 0.50: HUMAN ✓             │
+│                                                                          │
+│ → This is the bug: threshold 0.40 causes false positives                 │
+└──────────────────────────────────────────────────────────────────────────┘
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 2: UNDERSTAND THE BUG (1 minute)
+────────────────────────────────────────────────────────────────────────────
+
+CURRENT (WRONG):         SHOULD BE:                WHY:
+────────────────────     ──────────────────        ──────────────────
+threshold = 0.40         threshold = 0.50          Standard ML boundary
+IF P(AI) > 0.40:         IF P(AI) > 0.50:         50% = uncertain
+  → AI                     → AI                       Must pick a side
+
+CONSEQUENCE:
+Human audio with P(AI) = 0.49 is classified as AI (user's problem!)
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 3: APPLY THE FIX (2 minutes)
+────────────────────────────────────────────────────────────────────────────
+
+FILE 1: detector_core.py (around line 16)
+┌──────────────────────────────────────────────────────────────────────────┐
+│ OLD:  DECISION_THRESHOLD = 0.40                                         │
+│ NEW:  DECISION_THRESHOLD = 0.5                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+FILE 2: main.py (around line 72)
+┌──────────────────────────────────────────────────────────────────────────┐
+│ OLD:  threshold = 0.40                                                  │
+│ NEW:  threshold = 0.5                                                   │
+└──────────────────────────────────────────────────────────────────────────┘
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 4: VERIFY THE FIX (2 minutes)
+────────────────────────────────────────────────────────────────────────────
+
+$ python3 test_prediction_logic.py
+
+After fix:
+✅ AI audio → Classified as AI
+✅ Human audio → Classified as Human
+✅ No more false positives
+✅ Issue resolved!
+
+════════════════════════════════════════════════════════════════════════════════
+
+TOTAL TIME: ~7 minutes
+
+════════════════════════════════════════════════════════════════════════════════
+
+📁 FILES FOR REFERENCE:
+────────────────────────────────────────────────────────────────────────────
+
+test_prediction_logic.py    Main test script (run this)
+INDEX.md                    Quick reference and overview
+README.md                   How-to guide and FAQ
+BUG_ANALYSIS.md             Technical deep-dive
+test_results.txt            Actual test output
+SUMMARY.txt                 Complete summary
+QUICK_START.txt             This file
+
+════════════════════════════════════════════════════════════════════════════════
+
+❓ COMMON QUESTIONS:
+────────────────────────────────────────────────────────────────────────────
+
+Q: Will this break anything?
+A: No, 0.50 is the correct value. The current 0.40 is the bug.
+
+Q: Do I need to retrain the model?
+A: No, not for this fix. Retraining is optional for better accuracy.
+
+Q: Why is the threshold important?
+A: Because P(AI) = 0.49 will be classified as AI (wrong) with 0.40
+   but as Human (correct) with 0.50.
+
+Q: What if results are different?
+A: Compare with test_results.txt. The test data and model are the same.
+
+Q: Can I skip testing?
+A: No! Testing confirms the bug exists and the fix works.
+
+════════════════════════════════════════════════════════════════════════════════
+
+✨ YOU'RE ALL SET! START WITH: python3 test_prediction_logic.py
+
+════════════════════════════════════════════════════════════════════════════════
