@@ -32,6 +32,12 @@ dist/
 
 # OS files
 .DS_Store
-Thumbs.db*.pkl
-*.pkl
+Thumbs.db
+
+# Model files (but keep the trained model)
+test/audio_detection_old.pkl
+test/*.pkl.backup
+test/audio_detection_quick.pkl.backup
+
+# CSV files
 *.csv
