@@ -7,6 +7,9 @@ from werkzeug.utils import secure_filename
 import os
 
 # Import reusable detector core
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from detector_core import load_model, extract_features
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
